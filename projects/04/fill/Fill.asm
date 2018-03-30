@@ -71,10 +71,10 @@ M = D
 			D = M
 
 			@finalWordAddress
-			D = D - M
+			D = M - D
 
 			@ENDDRAWLOOP
-			D;JGT
+			D;JLT
 	
 		// write all ones to the word at i
 			@color
