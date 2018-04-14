@@ -39,5 +39,55 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    Not(in=instruction[15], out=aInstruction);
+    Not(in=aInstruction, out=cInstruction);
+
+    // A Register
+    // Should load if an A instruction or a C instruction and position d1 is set
+    And(a=cInstruction, b=instruction[5], out=cInstructionShouldSetA);
+    Or(a=aInstruction, b=cInstructionShouldSetA, out=shouldLoadA);
+
+    // Value to load is either instruction (if A instruction) or ALU output (if C instruction);
+    Mux16(a=instruction, b=alu, sel=cInstruction, out=aRegisterInput);
+
+    ARegister(in=aRegisterInput, load=shouldLoadA, out=A, out[0..14]=addressM);
+    
+    // D Register
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=alu, load=loadD, out=D);
+
+    // writeM output.  
+    // only want to write if its a C instruction and d3 is set
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // X is always D.  Y switches between A and M depending on the instruction 'a' bit
+    Mux16(a=A, b=inM, sel=instruction[12], out=Y);
+
+    ALU(
+        x=D, 
+        y=Y, 
+        zx=instruction[11], 
+        nx=instruction[10], 
+        zy=instruction[9], 
+        ny=instruction[8], 
+        f=instruction[7], 
+        no=instruction[6],
+        ng=ng,
+        zr=zr,
+        out=alu,
+        out=outM //there is a separate Mux to determine if this is actually written
+    );
+
+    // Determine whether we should jump
+    Nor(a=ng, b=zr, out=ngNorZr);
+    And(a=instruction[2], b=ng, out=lt);
+    And(a=instruction[1], b=zr, out=eq);
+    And(a=instruction[0], b=ngNorZr, out=gt);
+    Or(a=lt, b=eq, out=lte);
+    Or(a=lte, b=gt, out=shouldMaybeJump);
+
+    And(a=shouldMaybeJump, b=cInstruction, out=shouldJump);
+    Nor(a=shouldJump, b=reset, out=shouldInc);
+
+    PC(in=A, inc=shouldInc, load=shouldJump, reset=reset, out[0..14]=pc);
 }

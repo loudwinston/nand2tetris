@@ -27,5 +27,54 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+    /*
+    	if (address[14] === 0) 
+    		//accessing data
+		else if (address[13] === 0)
+			//accessing screen
+		else
+			//accessing keyboard
+	*/
+
+
+    //Note b=out is not valid here
+    Mux16(a=internalOut, b=in, sel=load, out=valueToLoad);
+
+    Not(in=address[14], out=accessingData);
+    
+    Not(in=address[13], out=notKeyboard);
+	And(a=address[14], b=notKeyboard, out=accessingScreen);
+
+	And(a=address[14], b=address[13], out=accessingKeyboard);
+
+
+	And(a=accessingData, b=load, out=loadingData);
+	And(a=accessingScreen, b=load, out=loadingScreen);
+
+
+	//Data memory
+    RAM16K(in=valueToLoad, load=loadingData, address=address[0..13], out=dataOut);
+
+    //Screen Memory
+    Screen(in=valueToLoad, load=loadingScreen, address=address[0..12], out=screenOut);
+
+    //Keyboard
+    Keyboard(out=keyboardOut);
+
+
+	Not(in=address[0], out=notAddrZero);
+	Not(in=notAddrZero, out=addrZero);
+
+    //Output 
+    /*
+    	00 = data
+    	01 = data
+    	10 = screen
+    	11 = keyboard
+    */
+    Mux4Way16(a=dataOut, b=dataOut, c=screenOut, d=keyboardOut, sel[0]=address[13], sel[1]=address[14], out=out, out=internalOut);
+
+
+
 }
