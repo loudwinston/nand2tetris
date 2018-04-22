@@ -71,7 +71,7 @@ jump_expression = '\;([\w]+)'
 #print str
 
 c_expression = re.compile(
-	r'((?P<assignee>[ADM])=)?(?P<operand_a>[ADM])((?P<operator>[\+\-])(?P<operand_b>[ADM]))?(;(?P<jump>[\w]+))?'
+	r'(((?P<assignee>[ADM])=)?(?P<operand_a>[ADM])((?P<operator>[\+\-])(?P<operand_b>[ADM]))|0)?(;(?P<jump>[\w]+))?'
 )	
 c_expression_match = c_expression.match('M=D+A;JLT');
 
