@@ -1,8 +1,0 @@
-CHIP Nor {
-    IN  a, b;
-    OUT out;
-
-    PARTS:
-    Or(a=a, b=b, out=temp);
-    Not(in=temp, out=out);
-}
